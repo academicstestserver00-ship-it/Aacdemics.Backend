@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+httpx
+python-multipart
+python-dotenv
+pydantic-settings
+PyJWT
+firebase-admin
+openpyxl
