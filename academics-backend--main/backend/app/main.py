@@ -10,7 +10,7 @@ import asyncio
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routes import teacher
@@ -34,8 +34,8 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# ✅ FIXED CORS CONFIG (NO LOGIN BREAK)
-explicit_origins = sorted(set((settings.ALLOWED_ORIGINS or []) + [
+# ✅ CLEAN & CORRECT CORS CONFIG
+origins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
@@ -45,53 +45,16 @@ explicit_origins = sorted(set((settings.ALLOWED_ORIGINS or []) + [
     "https://www.slashcoder.in",
     "https://test.slashcoder.in",
     "https://academics.slashcoder.in",
-    "https://academics-frontendtest.vercel.app",  # ✅ ADDED (your current frontend)
-]))
+    "https://academics-frontendtest.vercel.app",  # ✅ YOUR FRONTEND
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=explicit_origins,
-    allow_origin_regex=r"^https://([a-z0-9-]+\.)?netlify\.app$|^https://([a-z0-9-]+\.)?vercel\.app$|^https://([a-z0-9-]+\.)?slashcoder\.in$|^http://localhost(:\d+)?$|^http://127\.0\.0\.1(:\d+)?$",
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# ✅ KEEP THIS (important for auth + fallback)
-def _is_allowed_origin(origin: str) -> bool:
-    if not origin:
-        return False
-    if origin in explicit_origins:
-        return True
-    import re
-    return bool(re.match(
-        r"^https://([a-z0-9-]+\.)?netlify\.app$|^https://([a-z0-9-]+\.)?vercel\.app$|^https://([a-z0-9-]+\.)?slashcoder\.in$|^http://localhost(:\d+)?$|^http://127\.0\.0\.1(:\d+)?$",
-        origin
-    ))
-
-@app.middleware("http")
-async def force_cors_headers(request: Request, call_next):
-    origin = request.headers.get("origin", "")
-    allowed = _is_allowed_origin(origin)
-
-    if request.method == "OPTIONS" and allowed:
-        return Response(
-            status_code=204,
-            headers={
-                "Access-Control-Allow-Origin": origin,
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Headers": request.headers.get("access-control-request-headers", "*"),
-                "Vary": "Origin",
-            },
-        )
-
-    response = await call_next(request)
-    if allowed:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Vary"] = "Origin"
-    return response
 
 # Routes
 app.include_router(health_router, tags=["Health"])
