@@ -20,10 +20,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from fastapi import APIRouter, Response
 
-from firebase_admin import db, auth as firebase_auth
+from fastapi import APIRouter, Response
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-@router.options("/api/auth/google")
+
+@router.options("/google")
 async def google_auth_options():
     return Response(status_code=200)
 
