@@ -18,10 +18,14 @@ import uuid
 import hashlib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from fastapi import APIRouter, Response
 
 from firebase_admin import db, auth as firebase_auth
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+@router.options("/api/auth/google")
+async def google_auth_options():
+    return Response(status_code=200)
 
 # â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 SECRET_KEY = os.getenv("SECRET_KEY", "dsa-platform-secret-key-change-in-production")
